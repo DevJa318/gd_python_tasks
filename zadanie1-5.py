@@ -8,10 +8,8 @@ import getpass
 import socket
 import platform
 
-# Construct the argument parser
 parser = argparse.ArgumentParser()
 
-# Add the arguments to the parser
 parser.add_argument("-d", action="store_true",
    help="show distribution")
 parser.add_argument("-m", action="store_true",
@@ -27,14 +25,9 @@ parser.add_argument("-i", action="store_true",
 args = parser.parse_args()
 
 if args.d:
-    try: 
-        subprocess.run(['grep', ])
-    except IndentationError:
-        pass
-    else:
-        print(platform.system())
-
-
+    release = subprocess.run(['grep', '-E', '^(VERSION|NAME)=', '/etc/os-release'], 
+                             capture_output=True, text=True)
+    print(release.stdout)
 
 if args.m:
     mem = psutil.virtual_memory()

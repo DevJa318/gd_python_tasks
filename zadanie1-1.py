@@ -4,12 +4,7 @@
 
 import sys
 
-## add try, except
-# pytania ... ( za długo na linuxie.. )
-## czy w tym przypadku nazwy mogą mieć kropkę w nazwie? 
-## czy rozszerzenia mogą być dwuczłonowe?
-## co jeśli ma kropki a nie ma rozszerzenia :S
-
+# I make an assumption that extension is what is after last dot in file name.
 
 if '.' in sys.argv[1]:
     divided = sys.argv[1].split('.')
