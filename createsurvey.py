@@ -47,24 +47,18 @@ def format_questions(questions: Dict[str, Dict]) -> List[Dict]:
     return formatted_questions
 
 
-def create_survey(title: str, page_title: str, questions: List[Dict]) -> Dict:
+def create_survey(title: str, pages: List[Dict]) -> Dict:
     """
     Create a survey on SurveyMonkey using the API.
     :param title: Title of the survey.
-    :param page_title: Title of the survey page.
-    :param questions: List of questions formatted for the API.
+    :param pages: List of pages formatted for the API.
     :return: Response from the API as a dictionary.
     """
     survey_data = {
         "title": title,
         "nickname": title,
         "language": "en",
-        "pages": [
-            {
-                "title": page_title,
-                "questions": questions
-            }
-        ]
+        "pages": pages
     }
 
     response = requests.post("https://api.surveymonkey.com/v3/surveys", json=survey_data, headers=HEADERS)
@@ -75,26 +69,39 @@ def create_survey(title: str, page_title: str, questions: List[Dict]) -> Dict:
         raise RuntimeError(f"Failed to create survey: {response.status_code}, {response.json()}")
 
 
+def format_pages(pages_data: Dict[str, Dict]) -> List[Dict]:
+    """
+    Format all pages and their questions for a survey.
+    :param pages_data: Dictionary of page names with their questions.
+    :return: List of formatted pages with questions.
+    """
+    formatted_pages = []
+
+    for page_name, questions in pages_data.items():
+        formatted_pages.append({
+            "title": page_name,
+            "questions": format_questions(questions)
+        })
+
+    return formatted_pages
+
+
 def main():
     """
-    Main function to orchestrate the survey creation process.
+    Main function to orchestrate the survey creation process for multiple surveys.
     """
     try:
         # Load survey data from the JSON file
         survey_data = load_questions(QUESTIONS_FILE)
 
-        # Extract survey name and first page data
-        survey_name = next(iter(survey_data.keys()))
-        page_data = survey_data[survey_name]
-        page_name = next(iter(page_data.keys()))
+        for survey_name, pages_data in survey_data.items():
+            # Format all pages and questions for the current survey
+            formatted_pages = format_pages(pages_data)
 
-        # Format questions for the API
-        questions = format_questions(page_data[page_name])
+            # Create the survey via the API
+            response = create_survey(survey_name, formatted_pages)
 
-        # Create the survey via the API
-        response = create_survey(survey_name, page_name, questions)
-
-        print("Survey created successfully:", response)
+            print(f"Survey '{survey_name}' created successfully:", response)
 
     except RuntimeError as error:
         print(f"Error: {error}")
